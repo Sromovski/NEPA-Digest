@@ -1,0 +1,41 @@
+{
+  "members": [
+    {
+      "name": "Adults",
+      "email": "sromovski@gmail.com",
+      "alternate_email": "csromovski@gmail.com",
+      "interests": [
+        "farmers markets",
+        "social events",
+        "community happenings",
+        "local government",
+        "RailRiders baseball",
+        "arts and culture",
+        "festivals",
+        "Wilkes-Barre",
+        "Scranton",
+        "Lackawana County",
+        "Hazleton",
+        "Luzerne County"
+      ]
+    },
+    {
+      "name": "Children",
+      "email": "sromovskichase0@gmail.com",
+      "interests": [
+        "RailRiders baseball",
+        "power lifting",
+        "weight lifting",
+        "martial arts",
+        "youth sports",
+        "family events",
+        "kids activities",
+        "summer camps",
+        "parks and recreation",
+        "library programs",
+        "school events",
+        "fairs and festivals"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+[
+  {
+    "name": "Google News - Luzerne County",
+    "url": "https://news.google.com/rss/search?q=%22Luzerne+County%22+PA&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "news",
+    "active": true
+  },
+  {
+    "name": "Google News - Wilkes-Barre",
+    "url": "https://news.google.com/rss/search?q=%22Wilkes-Barre%22&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "news",
+    "active": true
+  },
+  {
+    "name": "Google News - Hazleton PA",
+    "url": "https://news.google.com/rss/search?q=%22Hazleton%22+PA&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "news",
+    "active": true
+  },
+  {
+    "name": "Google News - Wyoming Valley Events",
+    "url": "https://news.google.com/rss/search?q=%22Wyoming+Valley%22+events&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "events",
+    "active": true
+  },
+  {
+    "name": "Google News - Luzerne County Events",
+    "url": "https://news.google.com/rss/search?q=%22Luzerne+County%22+events&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "events",
+    "active": true
+  },
+  {
+    "name": "Google News - Farmers Markets NEPA",
+    "url": "https://news.google.com/rss/search?q=%22farmers+market%22+%22Luzerne+County%22+OR+%22Wilkes-Barre%22+OR+%22Hazleton%22&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "events",
+    "active": true
+  },
+  {
+    "name": "Google News - SWB RailRiders",
+    "url": "https://news.google.com/rss/search?q=%22RailRiders%22+OR+%22Scranton+Wilkes-Barre%22+baseball&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "sports",
+    "active": true
+  },
+  {
+    "name": "Google News - Luzerne County Sports",
+    "url": "https://news.google.com/rss/search?q=%22Luzerne+County%22+OR+%22Wilkes-Barre%22+sports&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "sports",
+    "active": true
+  },
+  {
+    "name": "Google News - Family Events NEPA",
+    "url": "https://news.google.com/rss/search?q=%22Luzerne+County%22+family+OR+kids+OR+children+events&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "events",
+    "active": true
+  },
+  {
+    "name": "Keystone Newsroom",
+    "url": "https://keystonenewsroom.com/feed/",
+    "type": "rss",
+    "category": "news",
+    "active": true
+  },
+  {
+    "name": "WVIA Local News",
+    "url": "",
+    "type": "rss",
+    "category": "news",
+    "active": false,
+    "note": "No public RSS feed found — check wvia.org for a feed URL before enabling"
+  }
+]
+

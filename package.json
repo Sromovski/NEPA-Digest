@@ -1,0 +1,32 @@
+{
+  "name": "local-news",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node src/scheduler.ts",
+    "db:migrate": "ts-node src/migrate.ts",
+    "fetch": "ts-node src/fetchFeeds.ts",
+    "digest:test": "ts-node src/sendDigest.ts --test",
+    "digest:send": "ts-node src/sendDigest.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.105.0",
+    "better-sqlite3": "^12.11.1",
+    "dotenv": "^17.4.2",
+    "node-cron": "^4.5.0",
+    "resend": "^6.14.0",
+    "rss-parser": "^3.13.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^26.0.0",
+    "@types/node-cron": "^3.0.11",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
+  }
+}
