@@ -1,5 +1,7 @@
 import type { FamilyMember } from './types';
 import type { RankedArticle } from './rankAndSummarize';
+import type { WeatherForecast } from './fetchWeather';
+import type { CalendarEvent } from './fetchCalendar';
 
 const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
   news:   { bg: '#dbeafe', text: '#1e40af' },
@@ -27,6 +29,136 @@ function sanitizeUrl(url: string): string {
 function categoryBadge(category: string): string {
   const colors = CATEGORY_COLORS[category] ?? { bg: '#f3f4f6', text: '#374151' };
   return `<span style="display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;letter-spacing:0.05em;background:${colors.bg};color:${colors.text};text-transform:uppercase;">${escHtml(category)}</span>`;
+}
+
+function weatherSection(forecast: WeatherForecast): string {
+  const cols = forecast.days.map(d => `
+    <td align="center" style="padding:0 4px;width:${Math.floor(100 / forecast.days.length)}%;">
+      <table cellpadding="0" cellspacing="0" border="0" width="100%">
+        <tr>
+          <td align="center"
+              style="font-size:12px;font-weight:700;color:#1e3a5f;padding:0 0 2px 0;
+                     letter-spacing:0.04em;">
+            ${escHtml(d.dayLabel)}
+          </td>
+        </tr>
+        <tr>
+          <td align="center"
+              style="font-size:10px;color:#6b7280;padding:0 0 6px 0;">
+            ${escHtml(d.dateLabel)}
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="font-size:22px;padding:0 0 6px 0;line-height:1;">
+            ${d.emoji}
+          </td>
+        </tr>
+        <tr>
+          <td align="center"
+              style="font-size:10px;color:#374151;padding:0 0 6px 0;
+                     white-space:nowrap;overflow:hidden;">
+            ${escHtml(d.description)}
+          </td>
+        </tr>
+        <tr>
+          <td align="center"
+              style="font-size:13px;font-weight:700;color:#111827;padding:0 0 2px 0;">
+            ${d.high}&deg;
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="font-size:12px;color:#6b7280;">
+            ${d.low}&deg;
+          </td>
+        </tr>
+      </table>
+    </td>`).join('');
+
+  return `
+    <tr>
+      <td style="padding:0 0 24px 0;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0"
+               style="background:#f0f7ff;border:1px solid #bfdbfe;border-radius:8px;
+                      overflow:hidden;">
+          <tr>
+            <td style="padding:14px 16px 6px 16px;">
+              <p style="margin:0 0 10px 0;font-size:12px;font-weight:700;
+                         letter-spacing:0.08em;color:#1e40af;text-transform:uppercase;">
+                &#127777;&#65039; 7-Day Forecast &mdash; Dallas, PA
+              </p>
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>${cols}</tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:6px 16px 10px 16px;">
+              <p style="margin:0;font-size:10px;color:#93c5fd;text-align:right;">
+                via Open-Meteo &middot; updated ${forecast.fetchedAt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>`;
+}
+
+function calendarSection(events: CalendarEvent[]): string {
+  if (events.length === 0) return '';
+
+  const rows = events.map(ev => {
+    const dayName = ev.startDate.toLocaleDateString('en-US', { weekday: 'short' });
+    const dateStr = ev.startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const timeStr = ev.isAllDay
+      ? 'All day'
+      : ev.startDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+    return `
+      <tr>
+        <td style="padding:10px 0;border-bottom:1px solid #e5e7eb;vertical-align:top;">
+          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td width="64" style="vertical-align:top;padding-right:12px;">
+                <div style="background:#1e3a5f;border-radius:6px;text-align:center;padding:4px 0;">
+                  <div style="font-size:10px;font-weight:700;color:#93c5fd;text-transform:uppercase;
+                               letter-spacing:0.08em;line-height:1.4;">${escHtml(dayName)}</div>
+                  <div style="font-size:15px;font-weight:700;color:#ffffff;line-height:1.2;">${escHtml(dateStr.split(' ')[1])}</div>
+                  <div style="font-size:9px;color:#bfdbfe;line-height:1.4;">${escHtml(dateStr.split(' ')[0])}</div>
+                </div>
+              </td>
+              <td style="vertical-align:top;">
+                <div style="font-size:14px;font-weight:600;color:#111827;line-height:1.4;">
+                  ${escHtml(ev.title)}
+                </div>
+                <div style="font-size:12px;color:#6b7280;margin-top:2px;">
+                  &#128337; ${escHtml(timeStr)}${ev.location ? ` &nbsp;&middot;&nbsp; &#128205; ${escHtml(ev.location)}` : ''}
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>`;
+  }).join('');
+
+  return `
+    <tr>
+      <td style="padding:0 0 24px 0;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0"
+               style="background:#fefce8;border:1px solid #fde68a;border-radius:8px;overflow:hidden;">
+          <tr>
+            <td style="padding:14px 16px 4px 16px;">
+              <p style="margin:0 0 10px 0;font-size:12px;font-weight:700;
+                         letter-spacing:0.08em;color:#92400e;text-transform:uppercase;">
+                &#128197; Family Calendar &mdash; Upcoming This Week
+              </p>
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                ${rows}
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>`;
 }
 
 function articleRow(item: RankedArticle): string {
@@ -77,7 +209,9 @@ function articleRow(item: RankedArticle): string {
 export function renderDigestEmail(
   member: FamilyMember,
   articles: RankedArticle[],
-  dateRange: string
+  dateRange: string,
+  weather?: WeatherForecast,
+  calendarEvents?: CalendarEvent[]
 ): string {
   const rows = articles.map(articleRow).join('');
 
@@ -143,6 +277,8 @@ export function renderDigestEmail(
           <tr>
             <td style="background:#ffffff;padding:28px 32px 8px 32px;">
               <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                ${weather ? weatherSection(weather) : ''}
+                ${calendarEvents && calendarEvents.length > 0 ? calendarSection(calendarEvents) : ''}
                 ${articles.length > 0 ? rows : noArticlesMsg}
               </table>
             </td>

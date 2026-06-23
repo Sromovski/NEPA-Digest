@@ -4,3 +4,5 @@ data/
 logs/
 .env
 *.db
+*.json.key
+nepa-digest-*.json

@@ -3,9 +3,13 @@ import { Resend } from 'resend';
 import { fetchAndNormalize } from './fetchFeeds';
 import { buildDigests } from './rankAndSummarize';
 import { renderDigestEmail } from './emailTemplate';
+import { fetchWeather } from './fetchWeather';
+import { fetchCalendarEvents } from './fetchCalendar';
 import { openDb } from './db';
 import { log, error } from './logger';
 import type { RankedArticle } from './rankAndSummarize';
+import type { WeatherForecast } from './fetchWeather';
+import type { CalendarEvent } from './fetchCalendar';
 
 function requireEnv(key: string): string {
   const val = process.env[key];
@@ -66,7 +70,25 @@ export async function run(testMode: boolean): Promise<void> {
   const testEmail = process.env.TEST_EMAIL ?? '';
   const range     = dateRange();
 
-  // 1. Fetch
+  // 1. Fetch weather, calendar, and feeds in parallel
+  log('Fetching weather and calendar...');
+  let weather: WeatherForecast | undefined;
+  let calendarEvents: CalendarEvent[] = [];
+
+  [weather, calendarEvents] = await Promise.all([
+    fetchWeather().catch(err => {
+      error(`Weather fetch failed (continuing without it): ${(err as Error).message}`);
+      return undefined;
+    }),
+    fetchCalendarEvents().catch(err => {
+      error(`Calendar fetch failed (continuing without it): ${(err as Error).message}`);
+      return [];
+    }),
+  ]);
+
+  if (weather) log(`Weather fetched: ${weather.days.length} day(s).`);
+  log(`Calendar fetched: ${calendarEvents.length} event(s).`);
+
   log('Fetching feeds...');
   const articles = await fetchAndNormalize();
   log(`${articles.length} fresh article(s) fetched.`);
@@ -84,7 +106,7 @@ export async function run(testMode: boolean): Promise<void> {
   for (const { member, articles: ranked } of digests) {
     const recipient = testMode ? testEmail : member.email;
     const subject   = `Luzerne County Weekly Digest — ${member.name} — ${range}`;
-    const html      = renderDigestEmail(member, ranked, range);
+    const html      = renderDigestEmail(member, ranked, range, weather, calendarEvents);
 
     try {
       await sendEmail(resend, recipient, subject, html);
