@@ -3,8 +3,8 @@ import cron from 'node-cron';
 import { run } from './sendDigest';
 import { log, error } from './logger';
 
-// Every Sunday at 7:00 AM Eastern
-const SCHEDULE = '0 7 * * 0';
+// Daily at 7:00 AM Eastern (temporary — switch back to '0 7 * * 0' for weekly)
+const SCHEDULE = '0 7 * * *';
 const TIMEZONE = 'America/New_York';
 
 async function runDigest(): Promise<void> {
@@ -17,5 +17,5 @@ async function runDigest(): Promise<void> {
 
 cron.schedule(SCHEDULE, runDigest, { timezone: TIMEZONE });
 
-log(`Scheduler started — digest runs every Sunday at 7:00 AM Eastern (${SCHEDULE}).`);
+log(`Scheduler started — digest runs daily at 7:00 AM Eastern (${SCHEDULE}).`);
 log('Process will stay alive. Press Ctrl+C to stop.');
