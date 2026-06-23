@@ -2,9 +2,9 @@ module.exports = {
   apps: [
     {
       name: 'nepa-digest',
-      script: 'ts-node',
-      args: 'src/scheduler.ts',
-      interpreter: 'none',
+      script: 'src/scheduler.ts',
+      interpreter: 'node',
+      interpreter_args: '--require ts-node/register',
       cwd: __dirname,
       restart_delay: 5000,
       max_restarts: 10,
