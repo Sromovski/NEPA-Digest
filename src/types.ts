@@ -21,5 +21,6 @@ export interface FamilyMember {
   id: number;
   name: string;
   email: string;
+  alternate_email?: string;
   interests: string[];
 }

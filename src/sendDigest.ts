@@ -104,13 +104,19 @@ export async function run(testMode: boolean): Promise<void> {
   let failCount = 0;
 
   for (const { member, articles: ranked } of digests) {
-    const recipient = testMode ? testEmail : member.email;
-    const subject   = `Luzerne County Weekly Digest — ${member.name} — ${range}`;
-    const html      = renderDigestEmail(member, ranked, range, weather, calendarEvents);
+    const recipients = testMode
+      ? [testEmail]
+      : [member.email, member.alternate_email].filter((e): e is string => !!e);
+    const subject = `Luzerne County Weekly Digest — ${member.name} — ${range}`;
+    const html    = renderDigestEmail(member, ranked, range, weather, calendarEvents);
 
     try {
-      await sendEmail(resend, recipient, subject, html);
-      const label = testMode ? `${member.name} → ${recipient} (test)` : `${member.name} → ${recipient}`;
+      for (const recipient of recipients) {
+        await sendEmail(resend, recipient, subject, html);
+      }
+      const label = testMode
+        ? `${member.name} → ${recipients.join(', ')} (test)`
+        : `${member.name} → ${recipients.join(', ')}`;
       log(`Sent: ${label} — ${ranked.length} article(s)`);
       allSent.push(...ranked);
       sentCount++;

@@ -105,7 +105,7 @@ ${articleList}`;
 export async function buildDigests(articles: Article[]): Promise<MemberDigest[]> {
   const db = openDb();
   const rows = db
-    .prepare('SELECT id, name, email, interests FROM family_members WHERE active = 1')
+    .prepare('SELECT id, name, email, alternate_email, interests FROM family_members WHERE active = 1')
     .all() as { id: number; name: string; email: string; interests: string }[];
   db.close();
 
