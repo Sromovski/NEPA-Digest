@@ -1,12 +1,13 @@
-import type { FamilyMember } from './types';
+import type { FamilyMember, Article } from './types';
 import type { RankedArticle } from './rankAndSummarize';
 import type { WeatherForecast } from './fetchWeather';
 import type { CalendarEvent } from './fetchCalendar';
 
 const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
-  news:   { bg: '#dbeafe', text: '#1e40af' },
-  events: { bg: '#dcfce7', text: '#15803d' },
-  sports: { bg: '#fef9c3', text: '#854d0e' },
+  news:     { bg: '#dbeafe', text: '#1e40af' },
+  events:   { bg: '#dcfce7', text: '#15803d' },
+  sports:   { bg: '#fef9c3', text: '#854d0e' },
+  national: { bg: '#f3e8ff', text: '#7e22ce' },
 };
 
 function escHtml(s: string): string {
@@ -161,6 +162,53 @@ function calendarSection(events: CalendarEvent[]): string {
     </tr>`;
 }
 
+function nationalSection(articles: Article[]): string {
+  if (articles.length === 0) return '';
+
+  const rows = articles.map(a => {
+    const date = a.pubDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return `
+      <tr>
+        <td style="padding:10px 0;border-bottom:1px solid #e9d5ff;">
+          <a href="${sanitizeUrl(a.link)}"
+             style="font-size:14px;font-weight:600;color:#111827;text-decoration:none;line-height:1.4;display:block;">
+            ${escHtml(a.title)}
+          </a>
+          <div style="font-size:11px;color:#9ca3af;margin-top:3px;">
+            ${escHtml(a.source)} &nbsp;&middot;&nbsp; ${escHtml(date)}
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+
+  return `
+    <tr>
+      <td style="padding:0 0 24px 0;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0"
+               style="background:#faf5ff;border:1px solid #e9d5ff;border-radius:8px;overflow:hidden;">
+          <tr>
+            <td style="padding:14px 16px 4px 16px;">
+              <p style="margin:0 0 8px 0;font-size:12px;font-weight:700;
+                         letter-spacing:0.08em;color:#7e22ce;text-transform:uppercase;">
+                &#127758; National Headlines
+              </p>
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                ${rows}
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:6px 16px 10px 16px;">
+              <p style="margin:0;font-size:10px;color:#c4b5fd;text-align:right;">
+                via AP News &amp; NPR &mdash; non-partisan wire sources
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>`;
+}
+
 function articleRow(item: RankedArticle): string {
   const { article, summary } = item;
   const date = article.pubDate.toLocaleDateString('en-US', {
@@ -209,6 +257,7 @@ function articleRow(item: RankedArticle): string {
 export function renderDigestEmail(
   member: FamilyMember,
   articles: RankedArticle[],
+  nationalArticles: Article[],
   dateRange: string,
   weather?: WeatherForecast,
   calendarEvents?: CalendarEvent[]
@@ -279,6 +328,7 @@ export function renderDigestEmail(
               <table width="100%" cellpadding="0" cellspacing="0" border="0">
                 ${weather ? weatherSection(weather) : ''}
                 ${calendarEvents && calendarEvents.length > 0 ? calendarSection(calendarEvents) : ''}
+                ${nationalSection(nationalArticles)}
                 ${articles.length > 0 ? rows : noArticlesMsg}
               </table>
             </td>

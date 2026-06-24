@@ -90,12 +90,16 @@ export async function run(testMode: boolean): Promise<void> {
   log(`Calendar fetched: ${calendarEvents.length} event(s).`);
 
   log('Fetching feeds...');
-  const articles = await fetchAndNormalize();
-  log(`${articles.length} fresh article(s) fetched.`);
+  const allArticles = await fetchAndNormalize();
+  log(`${allArticles.length} fresh article(s) fetched.`);
 
-  // 2. Rank + summarize
+  const nationalArticles = allArticles.filter(a => a.category === 'national').slice(0, 6);
+  const localArticles    = allArticles.filter(a => a.category !== 'national');
+  if (nationalArticles.length) log(`${nationalArticles.length} national headline(s) selected.`);
+
+  // 2. Rank + summarize local articles per member
   log('Ranking and summarizing...');
-  const digests = await buildDigests(articles);
+  const digests = await buildDigests(localArticles);
 
   // 3. Send
   log('Sending emails...');
@@ -108,21 +112,23 @@ export async function run(testMode: boolean): Promise<void> {
       ? [testEmail]
       : [member.email, member.alternate_email].filter((e): e is string => !!e);
     const subject = `Luzerne County Weekly Digest — ${member.name} — ${range}`;
-    const html    = renderDigestEmail(member, ranked, range, weather, calendarEvents);
+    const html = renderDigestEmail(member, ranked, nationalArticles, range, weather, calendarEvents);
 
-    try {
-      for (const recipient of recipients) {
+    let memberSentCount = 0;
+    for (const recipient of recipients) {
+      try {
         await sendEmail(resend, recipient, subject, html);
+        const label = testMode ? `${member.name} → ${recipient} (test)` : `${member.name} → ${recipient}`;
+        log(`Sent: ${label} — ${ranked.length} article(s)`);
+        memberSentCount++;
+      } catch (err) {
+        error(`Failed to send for ${member.name} → ${recipient}: ${(err as Error).message}`);
+        failCount++;
       }
-      const label = testMode
-        ? `${member.name} → ${recipients.join(', ')} (test)`
-        : `${member.name} → ${recipients.join(', ')}`;
-      log(`Sent: ${label} — ${ranked.length} article(s)`);
+    }
+    if (memberSentCount > 0) {
       allSent.push(...ranked);
       sentCount++;
-    } catch (err) {
-      error(`Failed to send for ${member.name}: ${(err as Error).message}`);
-      failCount++;
     }
   }
 

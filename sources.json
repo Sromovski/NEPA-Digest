@@ -63,6 +63,28 @@
     "active": true
   },
   {
+    "name": "AP News - Top Stories",
+    "url": "https://feeds.apnews.com/rss/apf-topnews",
+    "type": "rss",
+    "category": "national",
+    "active": false,
+    "note": "DNS blocked on host machine — re-enable if hosting changes"
+  },
+  {
+    "name": "Reuters - Top News",
+    "url": "https://feeds.reuters.com/reuters/topNews",
+    "type": "rss",
+    "category": "national",
+    "active": true
+  },
+  {
+    "name": "NPR News - Top Stories",
+    "url": "https://feeds.npr.org/1001/rss.xml",
+    "type": "rss",
+    "category": "national",
+    "active": true
+  },
+  {
     "name": "Keystone Newsroom",
     "url": "https://keystonenewsroom.com/feed/",
     "type": "rss",
