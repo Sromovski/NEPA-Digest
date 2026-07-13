@@ -110,7 +110,7 @@ export async function run(testMode: boolean): Promise<void> {
   for (const { member, articles: ranked } of digests) {
     const recipients = testMode
       ? [testEmail]
-      : [member.email, member.alternate_email].filter((e): e is string => !!e);
+      : [member.email, ...member.additional_emails].filter(e => !!e);
     const subject = `Luzerne County Weekly Digest — ${member.name} — ${range}`;
     const html = renderDigestEmail(member, ranked, nationalArticles, range, weather, calendarEvents);
 

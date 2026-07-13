@@ -105,12 +105,19 @@ ${articleList}`;
 export async function buildDigests(articles: Article[]): Promise<MemberDigest[]> {
   const db = openDb();
   const rows = db
-    .prepare('SELECT id, name, email, alternate_email, interests FROM family_members WHERE active = 1')
-    .all() as { id: number; name: string; email: string; interests: string }[];
+    .prepare('SELECT id, name, email, additional_emails, interests FROM family_members WHERE active = 1')
+    .all() as {
+      id: number;
+      name: string;
+      email: string;
+      additional_emails: string;
+      interests: string;
+    }[];
   db.close();
 
   const members: FamilyMember[] = rows.map(r => ({
     ...r,
+    additional_emails: JSON.parse(r.additional_emails) as string[],
     interests: JSON.parse(r.interests) as string[],
   }));
 

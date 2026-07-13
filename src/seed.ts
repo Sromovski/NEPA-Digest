@@ -11,8 +11,8 @@ export function seedFromFiles(): void {
   `);
 
   const insertMember = db.prepare(`
-    INSERT INTO family_members (name, email, alternate_email, interests)
-    VALUES (@name, @email, @alternate_email, @interests)
+    INSERT INTO family_members (name, email, additional_emails, interests)
+    VALUES (@name, @email, @additional_emails, @interests)
   `);
 
   // Single transaction — sources and members reset atomically
@@ -37,7 +37,7 @@ export function seedFromFiles(): void {
       insertMember.run({
         name: m.name,
         email: m.email,
-        alternate_email: (m as any).alternate_email ?? null,
+        additional_emails: JSON.stringify((m as any).additional_emails ?? []),
         interests: JSON.stringify(m.interests),
       });
       memberCount++;

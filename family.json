@@ -3,7 +3,10 @@
     {
       "name": "Adults",
       "email": "sromovski@gmail.com",
-      "alternate_email": "csromovski@gmail.com",
+      "additional_emails": [
+        "csromovski@gmail.com",
+        "lindacvalenta@gmail.com"
+      ],
       "interests": [
         "farmers markets",
         "social events",

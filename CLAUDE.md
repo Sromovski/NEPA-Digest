@@ -115,9 +115,11 @@ To add a source, append to `sources.json` and re-run `npm run db:migrate`.
 Defined in `family.json`, seeded into the `family_members` table.
 Re-run `npm run db:migrate` after editing to apply changes.
 
-Each member supports an optional `alternate_email` field — if set, the digest
-is sent to both `email` and `alternate_email` independently (each in its own
-Resend call with its own error handling).
+Each member supports an optional `additional_emails` array — every address in
+it receives the same digest alongside the primary `email`, each in its own
+Resend call with its own error handling, so one bad address never blocks the
+others. Stored in the DB as a JSON array in the `additional_emails` column.
+(This replaced the older single `alternate_email` field.)
 
 ```json
 {
@@ -125,7 +127,7 @@ Resend call with its own error handling).
     {
       "name": "Adults",
       "email": "primary@example.com",
-      "alternate_email": "secondary@example.com",
+      "additional_emails": ["second@example.com", "third@example.com"],
       "interests": ["farmers markets", "RailRiders baseball", "Luzerne County", ...]
     },
     {
@@ -215,7 +217,7 @@ src/
 Config files:
 ```
 sources.json              — RSS feed definitions (edit here, then npm run db:migrate)
-family.json               — audience profiles with email + alternate_email
+family.json               — audience profiles with email + additional_emails[]
 ecosystem.config.js       — PM2 process config (node + ts-node/register on Windows)
 .env                      — secrets (never commit)
 .env.example              — template for required env vars

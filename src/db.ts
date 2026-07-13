@@ -16,9 +16,9 @@ export function migrate(): void {
     CREATE TABLE IF NOT EXISTS family_members (
       id              INTEGER PRIMARY KEY AUTOINCREMENT,
       name            TEXT    NOT NULL,
-      email           TEXT    NOT NULL UNIQUE,
-      alternate_email TEXT,
-      interests       TEXT    NOT NULL DEFAULT '[]',
+      email             TEXT    NOT NULL UNIQUE,
+      additional_emails TEXT    NOT NULL DEFAULT '[]',
+      interests         TEXT    NOT NULL DEFAULT '[]',
       active          INTEGER NOT NULL DEFAULT 1,
       created_at      TEXT    NOT NULL DEFAULT (datetime('now'))
     );
@@ -48,7 +48,7 @@ export function migrate(): void {
   `);
 
   // Add columns introduced after initial schema (safe to re-run)
-  try { db.exec(`ALTER TABLE family_members ADD COLUMN alternate_email TEXT`); } catch {}
+  try { db.exec(`ALTER TABLE family_members ADD COLUMN additional_emails TEXT NOT NULL DEFAULT '[]'`); } catch {}
 
   db.close();
   console.log('Migration complete.');
