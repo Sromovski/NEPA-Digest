@@ -6,6 +6,7 @@ import {
   isEventInWindow,
   compareByStartDate,
   countyLabel,
+  collapseRecurringEvents,
   EVENT_WINDOW_DAYS,
 } from './region';
 
@@ -101,4 +102,49 @@ test('countyLabel hides Luzerne and shows everywhere else', () => {
   assert.equal(countyLabel('Luzerne'), '');
   assert.equal(countyLabel('Lackawanna'), 'Lackawanna County');
   assert.equal(countyLabel(undefined), '');
+});
+
+test('collapseRecurringEvents keeps only the soonest occurrence', () => {
+  const items = [
+    { title: "Fall Farmer's Market", source: 'Waverly', eventDate: new Date('2026-09-18T13:30:00Z') },
+    { title: "Fall Farmer's Market", source: 'Waverly', eventDate: new Date('2026-09-11T13:30:00Z') },
+    { title: "Fall Farmer's Market", source: 'Waverly', eventDate: new Date('2026-09-25T13:30:00Z') },
+  ];
+  const out = collapseRecurringEvents(items);
+  assert.equal(out.length, 1);
+  assert.equal(out[0].eventDate!.toISOString().slice(0, 10), '2026-09-11');
+});
+
+test('collapseRecurringEvents matches titles case- and whitespace-insensitively', () => {
+  const items = [
+    { title: 'Story  Time', source: 'Library', eventDate: new Date('2026-09-15T10:00:00Z') },
+    { title: 'story time', source: 'Library', eventDate: new Date('2026-09-12T10:00:00Z') },
+  ];
+  assert.equal(collapseRecurringEvents(items).length, 1);
+});
+
+test('collapseRecurringEvents keeps same-titled events from different sources', () => {
+  const items = [
+    { title: 'Farmers Market', source: 'Waverly', eventDate: new Date('2026-09-11T13:00:00Z') },
+    { title: 'Farmers Market', source: 'Osterhout', eventDate: new Date('2026-09-11T13:00:00Z') },
+  ];
+  assert.equal(collapseRecurringEvents(items).length, 2);
+});
+
+test('collapseRecurringEvents leaves undated items untouched', () => {
+  // Two news stories can legitimately share a headline across outlets.
+  const items = [
+    { title: 'Council approves budget', source: 'Google News' },
+    { title: 'Council approves budget', source: 'Google News' },
+  ];
+  assert.equal(collapseRecurringEvents(items).length, 2);
+});
+
+test('collapseRecurringEvents preserves input order', () => {
+  const items = [
+    { title: 'B', source: 'S', eventDate: new Date('2026-09-12T10:00:00Z') },
+    { title: 'A', source: 'S', eventDate: new Date('2026-09-11T10:00:00Z') },
+    { title: 'B', source: 'S', eventDate: new Date('2026-09-19T10:00:00Z') },
+  ];
+  assert.deepEqual(collapseRecurringEvents(items).map(i => i.title), ['B', 'A']);
 });

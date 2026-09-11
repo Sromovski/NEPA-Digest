@@ -161,6 +161,18 @@ Event windowing lives in `isEventInWindow()` (`src/region.ts`). The floor is
 the **start of the run day**, not `now`, so a 7 AM run still shows tonight's
 concert.
 
+**GOTCHA — recurring events arrive as one item PER OCCURRENCE.** Waverly
+Community House emits `/event/fall-farmers-market/2026-09-11/` and
+`/2026-09-18/` as two separate items with two different URLs, so the urlHash
+dedupe cannot tell they are the same event. Left alone, a weekly event eats
+two of the six event slots and a daily one could eat the entire section —
+this shipped briefly on 2026-09-11 and put "Fall Farmer's Market" in the
+digest twice. `collapseRecurringEvents()` (`src/region.ts`) keys on
+**source + normalized title** (not URL — the date sits in a different part of
+the path on every platform) and keeps only the soonest upcoming occurrence.
+Undated items are never collapsed: two outlets legitimately run the same
+headline.
+
 ### Verified event calendars
 
 Probed 2026-09-10. Most `/events/feed/` guesses 404 — **always probe before

@@ -106,3 +106,46 @@ export function countyLabel(county: string | undefined | null): string {
   if (!name || name.toLowerCase() === 'luzerne') return '';
   return `${name} County`;
 }
+
+/**
+ * Collapse repeat occurrences of a recurring event down to the soonest one.
+ *
+ * Calendar feeds publish a recurring event as one item PER OCCURRENCE, each
+ * with its own URL — Waverly Community House emits
+ * `/event/fall-farmers-market/2026-09-11/` and `/2026-09-18/` as separate
+ * items. The urlHash dedupe in fetchFeeds can't see these are the same thing,
+ * so a weekly event quietly eats two of the six event slots and a daily one
+ * could eat the whole section.
+ *
+ * Keyed on source + title rather than the URL, since the date lives in a
+ * different part of the path on every platform. Same title from two different
+ * sources stays separate — those really are two events. Undated items are
+ * never collapsed: two outlets legitimately run the same headline.
+ */
+export function collapseRecurringEvents<
+  T extends { title: string; source: string; eventDate?: Date }
+>(articles: T[]): T[] {
+  const soonest = new Map<string, T>();
+  // Placeholders hold each event's position so output order matches input,
+  // even though a later occurrence can replace an earlier-seen one.
+  const slots: (T | { key: string })[] = [];
+
+  for (const a of articles) {
+    if (!a.eventDate) {
+      slots.push(a);
+      continue;
+    }
+
+    const key = `${a.source}::${a.title.trim().toLowerCase().replace(/\s+/g, ' ')}`;
+    const existing = soonest.get(key);
+
+    if (!existing) {
+      soonest.set(key, a);
+      slots.push({ key });
+    } else if (a.eventDate.getTime() < existing.eventDate!.getTime()) {
+      soonest.set(key, a);
+    }
+  }
+
+  return slots.map(slot => ('key' in slot ? soonest.get(slot.key)! : slot));
+}

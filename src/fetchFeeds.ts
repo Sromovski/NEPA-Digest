@@ -3,7 +3,12 @@ import RSSParser from 'rss-parser';
 import crypto from 'crypto';
 import { openDb } from './db';
 import { warn } from './logger';
-import { isEventInWindow, compareByStartDate, countyLabel } from './region';
+import {
+  isEventInWindow,
+  compareByStartDate,
+  countyLabel,
+  collapseRecurringEvents,
+} from './region';
 import { withTimeout } from './net';
 import type { Article, Source } from './types';
 
@@ -185,7 +190,9 @@ export async function fetchAndNormalize(): Promise<Article[]> {
   // Dated calendar events sort soonest-first; everything else newest-first.
   // Keeping them in separate blocks stops a concert two weeks out from
   // outranking this morning's news.
-  const datedEvents = fresh.filter(a => a.eventDate).sort(compareByStartDate);
+  const datedEvents = collapseRecurringEvents(
+    fresh.filter(a => a.eventDate)
+  ).sort(compareByStartDate);
   const rest = fresh
     .filter(a => !a.eventDate)
     .sort((a, b) => b.pubDate.getTime() - a.pubDate.getTime());
