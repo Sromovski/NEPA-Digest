@@ -393,6 +393,40 @@ pm2 save                             # persist process list across reboots
 **Critical:** Always use `--update-env` when restarting after `.env` changes.
 Plain `pm2 restart` preserves the old environment and changes won't take effect.
 
+**GOTCHA — `--update-env` injects the CALLING SHELL's environment, and it
+MERGES, never removes.** Two consequences, both bit us on 2026-09-11:
+
+1. If the shell you run `pm2` from has `ANTHROPIC_API_KEY` set (an AI coding
+   agent's shell, or any terminal where it was exported), PM2 copies that key
+   into the process env. `dotenv` does NOT override an existing process var,
+   so the scheduler silently runs on the WRONG key — same failure shape as the
+   OS-env gotcha in §11, but sourced from PM2 rather than Windows.
+2. Because `--update-env` only adds and overwrites, you **cannot** remove a bad
+   variable by restarting again, even from a clean shell. The only fix is to
+   delete and recreate the process:
+
+```bash
+pm2 delete nepa-digest
+pm2 start ecosystem.config.js      # from a shell with no ANTHROPIC_API_KEY
+pm2 save                           # re-persist, or a reboot restores the bad env
+```
+
+Verify the process env is clean — this should print nothing:
+
+```bash
+pm2 env 0 | grep '^ANTHROPIC_API_KEY:'
+```
+
+Absent is CORRECT: it means `dotenv` loads the key from `.env` at startup.
+
+**GOTCHA — `ecosystem.config.js` must use `ts-node/register/transpile-only`.**
+With plain `ts-node/register`, the scheduler type-checks the whole project at
+require time and holds the resulting TypeScript Program in memory **for the
+life of the process** — measured at **2014 MB vs 221 MB** on 2026-09-11. The
+process is long-lived, so that memory is never reclaimed. Types are checked by
+`npm run typecheck`; the scheduler does not need to re-check them at runtime.
+Do not revert this.
+
 **Reboot persistence.** `pm2 startup` is not supported on Windows. A Task
 Scheduler task named **`pm2-resurrect`** runs `pm2 resurrect` at user logon
 (30s delay) to restore the saved process list. Created 2026-08-24 after a
