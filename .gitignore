@@ -6,3 +6,8 @@ logs/
 *.db
 *.json.key
 nepa-digest-*.json
+
+# Personal school/sports documents — this repo is PUBLIC. These hold a named
+# minors' team schedule (dates, times, locations); keep them local only.
+src/*Soccer Calendar*.pdf
+src/importSoccerCalendar.ts
