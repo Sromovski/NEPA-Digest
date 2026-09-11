@@ -31,6 +31,8 @@ export function migrate(): void {
       type       TEXT    NOT NULL DEFAULT 'rss',
       category   TEXT    NOT NULL DEFAULT 'news',
       active     INTEGER NOT NULL DEFAULT 1,
+      tier       INTEGER NOT NULL DEFAULT 2,
+      county     TEXT,
       created_at TEXT    NOT NULL DEFAULT (datetime('now'))
     );
 
@@ -49,6 +51,8 @@ export function migrate(): void {
 
   // Add columns introduced after initial schema (safe to re-run)
   try { db.exec(`ALTER TABLE family_members ADD COLUMN additional_emails TEXT NOT NULL DEFAULT '[]'`); } catch {}
+  try { db.exec(`ALTER TABLE sources ADD COLUMN tier INTEGER NOT NULL DEFAULT 2`); } catch {}
+  try { db.exec(`ALTER TABLE sources ADD COLUMN county TEXT`); } catch {}
 
   db.close();
   console.log('Migration complete.');

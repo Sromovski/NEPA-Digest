@@ -10,7 +10,8 @@ as decisions change — Claude Code reads this on every session.
 A self-hosted Node.js app that:
 1. Pulls national headlines (NPR) and local news, community events, farmers
    market listings, and sports coverage (SWB RailRiders Triple-A baseball)
-   for **Luzerne County, PA** (Wilkes-Barre, Hazleton, Wyoming Valley area).
+   for **Luzerne County, PA and every county within ~50 miles** — see §4a for
+   the tier map. Home base is the Wilkes-Barre / Hazleton / Wyoming Valley area.
 2. Fetches a 7-day weather forecast (Open-Meteo, no API key) and upcoming
    Google Calendar events for the week.
 3. Filters and ranks local news against two audience profiles — **Adults** and
@@ -30,7 +31,7 @@ headline + original-words summary + link only.
 | Concern | Choice |
 |---|---|
 | Runtime | Node.js 20+ / TypeScript |
-| Feed parsing | `rss-parser` |
+| Feed parsing | `rss-parser` (RSS) + `node-ical` (.ics calendars) — see §4b |
 | AI ranking + summarization | Anthropic API — `claude-sonnet-4-6` |
 | Email delivery | **Resend** — verified domain `sromovski.com`, FROM `hello@sromovski.com` |
 | Database | SQLite via `better-sqlite3` |
@@ -53,17 +54,22 @@ headline + original-words summary + link only.
                    {title, summary, link, source, pubDate, category, urlHash}
 [3] FILTER       → drop items older than 7 days
                    drop already-sent items (check sent_log by URL hash)
-[4] SPLIT        → separate national (category=national) from local articles
-                   national: top 6 by date, no AI ranking
-                   local: proceed to keyword pre-filter + Claude ranking
-[5] KEYWORD FILTER → cheap keyword pre-filter per audience to reduce
-                   Claude API calls (falls back to full list if < 5 matches)
-[6] RANK/MATCH   → Claude API scores each local candidate 0-10 against
-                   the audience's interest tags; drops score < 5
+[4] SPLIT        → national (category=national): top 6 by date, no AI ranking
+                   local events (category=events) and local news/sports each
+                   get their OWN pool — see §4b
+[5] KEYWORD FILTER → per audience, interest matches lead and the remainder
+                   tops up the pool to MAX_CANDIDATES (60) so a busy news
+                   day can never starve the events pool
+[6] RANK/MATCH   → Claude scores each candidate 0-10 against the audience's
+                   interest tags. TWO passes per member (events, news), each
+                   with its own try/catch. Tier bonus is applied AFTER
+                   scoring (§4a), then score < 5 is dropped
 [7] SUMMARIZE    → Claude writes a 1-2 sentence original-words summary per
-                   local article (never verbatim — copyright rule)
+                   article (never verbatim — copyright rule), naming the town
+                   or county when the item is outside Luzerne
 [8] RENDER       → build personalized HTML email per audience profile
-                   order: weather → calendar → national news → local news
+                   order: weather → calendar → national → grocery (test only)
+                          → Events & Things To Do → Around the Region
 [9] SEND         → dispatch via Resend; each recipient gets its own try/catch
                    so one bad address never blocks the others
 [10] LOG         → record sent article URL hashes in sent_log (live runs only)
@@ -89,24 +95,103 @@ marked sent for all members. Fix (make per-member) is an open decision below.
 National articles are NOT ranked by Claude — top 6 by recency are shown as
 plain headline links in a purple section.
 
-### Local (Luzerne County)
-| Name | Category | Focus |
+### Local — Luzerne County + 50-mile radius
+
+Local sources are **tiered by county** rather than listed individually here;
+`sources.json` is the source of truth. As of the 2026-09-10 widening there are
+46 active sources: 41 plain RSS and 5 event calendars.
+
+To see exactly what is configured and whether it still works:
+
+```bash
+npm run sources:probe    # hits EVERY source (active or not), prints item counts
+```
+
+---
+
+## 4a. Regional Tiers (IMPORTANT)
+
+Distances are measured from Luzerne's **border**, not from Wilkes-Barre center.
+
+| Tier | Counties | Score adjustment |
 |---|---|---|
-| Google News - Luzerne County | news | General county news |
-| Google News - Wilkes-Barre | news | City-level coverage |
-| Google News - Hazleton PA | news | Southern Luzerne County |
-| Google News - Wyoming Valley Events | events | Regional events |
-| Google News - Luzerne County Events | events | County events |
-| Google News - Farmers Markets NEPA | events | Farmers market listings |
-| Google News - SWB RailRiders | sports | Triple-A Yankees affiliate |
-| Google News - Luzerne County Sports | sports | Local sports |
-| Google News - Family Events NEPA | events | Family/kids events |
-| Keystone Newsroom | news | PA statewide investigative |
+| **1** | Luzerne | **+1.5** |
+| **2** | Lackawanna, Wyoming, Columbia, Carbon, Monroe, Schuylkill, Sullivan, Susquehanna, Wayne, Montour | **0** |
+| **3** | Pike, Northampton, Lehigh, Northumberland, Bradford | **−1.0** |
 
-Sources are stored in `sources.json` and seeded into the `sources` table via
-`npm run db:migrate`. Set `"active": false` to disable without removing.
+The tier bonus is applied in `applyTierBonus()` (`src/region.ts`) **after**
+Claude has scored an article, then clamped to 0-10, then the `MIN_SCORE = 5`
+cut is applied. It costs nothing — no extra API call.
 
-To add a source, append to `sources.json` and re-run `npm run db:migrate`.
+Claude is explicitly told **not** to adjust for distance. The county is passed
+into the prompt only so it can name the town in the summary. Distance is
+handled here, deterministically, so the weighting stays predictable.
+
+Net effect: a 6/10 Wilkes-Barre story (→ 7.5) outranks a 7/10 Allentown story
+(→ 6.0), but a genuinely great Scranton event still beats a dull local one.
+
+Unknown or missing counties default to **tier 2**. To change the map, edit
+`COUNTY_TIERS` in `src/region.ts` — `tierFor()` is case-insensitive.
+
+---
+
+## 4b. Source Types & Date Semantics (IMPORTANT)
+
+The `type` field in `sources.json` controls **both** how a source is fetched
+and **how its dates are interpreted**. Getting this wrong is the single
+easiest way to break the events section.
+
+| `type` | Fetched with | What `pubDate` means | Window |
+|---|---|---|---|
+| `rss` | `rss-parser` | when the article was **published** | last 7 days, newest first |
+| `event-rss` | `rss-parser` | when the event **starts** | next 14 days, soonest first |
+| `ical` | `node-ical` | `VEVENT` start time | next 14 days, soonest first |
+
+**Why `event-rss` exists.** The Events Calendar — the WordPress plugin behind
+most local library, venue, and college calendars — publishes at
+`/events/feed/` in ordinary RSS, but sets `pubDate` to the event's **start
+time**, which is in the future. Same wire format as a news feed, opposite date
+semantics. Treating one of these as `type: "rss"` puts a concert two weeks out
+at the top of the digest, above this morning's news.
+
+Verified example (Osterhout Free Library, checked 2026-09-10):
+`<title>Pokemon Day</title>` with `<pubDate>Sat, 12 Sep 2026 14:00:00</pubDate>`.
+
+Event windowing lives in `isEventInWindow()` (`src/region.ts`). The floor is
+the **start of the run day**, not `now`, so a 7 AM run still shows tonight's
+concert.
+
+### Verified event calendars
+
+Probed 2026-09-10. Most `/events/feed/` guesses 404 — **always probe before
+activating.**
+
+| Source | Type | Tier |
+|---|---|---|
+| Osterhout Free Library | `event-rss` | 1 |
+| Keystone College | `event-rss` | 2 |
+| Scranton Cultural Center | `event-rss` | 2 |
+| Waverly Community House | `event-rss` | 2 |
+| ArtsQuest (Bethlehem) | `event-rss` | 3 |
+| F.M. Kirby Center (blog, publish-dated) | `rss` | 1 |
+| Luzerne County Library System (blog) | `rss` | 1 |
+
+**Known 403 (bot-blocked, worth retrying later):** DiscoverNEPA,
+Pocono Mountains Visitors Bureau, Visit NEPA. DiscoverNEPA in particular shows
+up constantly in Google News results as an event listing site — if its
+Cloudflare rule ever relaxes it would be the single best event source in the
+region.
+
+### Adding a source
+
+1. Append to `sources.json` with `name`, `url`, `type`, `category`, `active`,
+   `tier`, and `county`.
+2. `npm run sources:probe` — confirm it returns items, and check the date
+   column reads `Nd ahead` (an event feed) vs `Nd ago` (a news feed).
+   **That column is how you pick between `rss` and `event-rss`.**
+3. `npm run db:migrate` to reseed.
+
+`tier` may be omitted — `seedFromFiles()` falls back to `tierFor(county)`.
 
 ---
 
@@ -152,7 +237,8 @@ Provider is **Resend**. Do not add a second provider.
 - Verified domain: `sromovski.com` — confirmed active in Resend dashboard
 - FROM address: `hello@sromovski.com` (set in `FROM_EMAIL` env var)
 - Template: table-based HTML, inline styles only, max 600px wide
-- Subject format: `Luzerne County Weekly Digest — {Name} — {Date range}`
+- Subject format: `NEPA Weekly Digest — {Name} — {Date range}`
+  (renamed 2026-09-10 — the digest is no longer Luzerne-only)
 - Each recipient gets its own `try/catch` — one bad address won't block others
 
 **Important:** When `.env` changes, restart PM2 with `--update-env` or the
@@ -208,9 +294,15 @@ src/
   fetchFeeds.ts        — fetch all active sources, normalize, dedupe, filter 7 days
   fetchWeather.ts      — 7-day forecast from Open-Meteo (no API key, Dallas PA)
   fetchCalendar.ts     — upcoming events from Google Calendar via service account
-  rankAndSummarize.ts  — keyword pre-filter → Claude API ranking + summarization (local only)
-  emailTemplate.ts     — renders table-based HTML email (weather + calendar + national + local)
+  fetchGrocery.ts      — TEST-ONLY grocery deals from Flipp/Wishabi circular feed (see §15)
+  region.ts            — PURE regional rules: county→tier map, tier bonus, event window (§4a/§4b)
+  net.ts               — withTimeout() hard deadline wrapper for every network call
+  probeSources.ts      — npm run sources:probe — hits every source, reports item counts
+  rankAndSummarize.ts  — keyword pre-filter → two Claude passes (events, news) + tier bonus
+  emailTemplate.ts     — renders table-based HTML email (weather + calendar + national + events + news)
   sendDigest.ts        — orchestrates full pipeline; splits national vs local; export run(testMode)
+
+  *.test.ts            — node:test unit tests (region, net, emailTemplate) — npm test
   scheduler.ts         — node-cron entry point; SCHEDULE constant controls frequency
 ```
 
@@ -219,9 +311,11 @@ Config files:
 sources.json              — RSS feed definitions (edit here, then npm run db:migrate)
 family.json               — audience profiles with email + additional_emails[]
 ecosystem.config.js       — PM2 process config (node + ts-node/register on Windows)
+tsconfig.json             — note "types": ["node"] is REQUIRED, see §12 gotcha
 .env                      — secrets (never commit)
 .env.example              — template for required env vars
 nepa-digest-*.json        — Google service account key (gitignored, never commit)
+grocery.json              — TEST-ONLY grocery deal config (items, store allowlist, zip)
 data/digest.db            — SQLite database (gitignored)
 logs/                     — daily log files digest-YYYY-MM-DD.log (gitignored)
 ```
@@ -242,6 +336,16 @@ GOOGLE_CALENDAR_ID=             # Google Calendar ID
 GOOGLE_SERVICE_ACCOUNT_KEY=./nepa-digest-e28c54d4aa7b.json  # file path, not inline JSON
 ```
 
+**GOTCHA — OS env vars shadow `.env`:** `dotenv` does NOT override a variable
+that already exists in the process environment. If a key (e.g.
+`ANTHROPIC_API_KEY`) is ALSO set as a Windows **User** environment variable,
+that OS value wins and edits to `.env` are silently ignored — the symptom is a
+persistent `401 authentication_error` no matter how many times you fix `.env`.
+Check with PowerShell:
+`[Environment]::GetEnvironmentVariable('ANTHROPIC_API_KEY','User')`.
+Fix by updating/removing the OS var (User scope), then restart PM2 from a fresh
+shell with `--update-env`. Keep the key in ONE place to avoid drift.
+
 ---
 
 ## 12. NPM Scripts
@@ -252,7 +356,22 @@ npm run db:migrate    # apply schema + reseed sources and family_members from JS
 npm run fetch         # fetch + normalize feeds, print to console
 npm run digest:test   # full pipeline → send to TEST_EMAIL only (no sent_log write)
 npm run digest:send   # full pipeline → send to all members (writes sent_log)
+npm run sources:probe # hit EVERY source (active or not), report item counts + dates
+npm test              # node:test unit tests (region rules, timeouts, email render)
+npm run typecheck     # tsc --noEmit
 ```
+
+**GOTCHA — `"types": ["node"]` is load-bearing.** Without it, `tsc --noEmit`
+passes but `ts-node` fails on *some* entry points with a misleading
+`TS2591: Cannot find name 'require'` (it also mis-reports unrelated type
+errors this way). If a script suddenly can't find `require`/`process`, run
+`npm run typecheck` first — that gives the real error.
+
+**GOTCHA — one-shot CLIs must `process.exit(0)`.** `withTimeout()` abandons a
+stalled request but cannot cancel the underlying socket, which keeps Node's
+event loop alive indefinitely. `sendDigest.ts` and `probeSources.ts` therefore
+exit explicitly on success. The scheduler calls `run()` directly and is
+unaffected. Do not remove those `.then(() => process.exit(0))` calls.
 
 ---
 
@@ -267,11 +386,36 @@ pm2 logs nepa-digest                 # live log tail
 pm2 restart nepa-digest --update-env # restart AND reload .env (ALWAYS use --update-env)
 pm2 stop nepa-digest                 # stop
 pm2 save                             # persist process list across reboots
-pm2 startup                          # register PM2 as Windows startup service (run once)
+# NOTE: `pm2 startup` does NOT support Windows. Reboot persistence is handled
+# by a Task Scheduler task instead — see "Reboot persistence" below.
 ```
 
 **Critical:** Always use `--update-env` when restarting after `.env` changes.
 Plain `pm2 restart` preserves the old environment and changes won't take effect.
+
+**Reboot persistence.** `pm2 startup` is not supported on Windows. A Task
+Scheduler task named **`pm2-resurrect`** runs `pm2 resurrect` at user logon
+(30s delay) to restore the saved process list. Created 2026-08-24 after a
+reboot on 2026-08-23 silently killed the scheduler and no digest was sent.
+
+```powershell
+Get-ScheduledTask -TaskName pm2-resurrect      # check it's registered
+Start-ScheduledTask -TaskName pm2-resurrect    # test it manually
+```
+
+After changing which processes should run, re-run `pm2 save` — the task only
+restores whatever was in `dump.pm2` at the last save.
+
+**Watch for duplicate schedulers.** Every extra `npm start` or `pm2 start`
+creates ANOTHER cron registration, and each one sends a full digest. On
+2026-08-20..23 three instances were running and every recipient got three
+copies daily. Verify with `pm2 status` (expect exactly one `nepa-digest`) and
+by grepping the day's log — more than one `Digest run started` line per day
+means duplicates:
+
+```bash
+grep -c "Digest run started" logs/digest-$(date +%F).log   # expect 1
+```
 
 `ecosystem.config.js` uses `interpreter: 'node'` with
 `interpreter_args: '--require ts-node/register'` — required on Windows because
@@ -285,6 +429,45 @@ the `node_modules/.bin/ts-node` shim is a Unix shell script Node can't run.
 - [ ] Make `sent_log` per-member so Adults and Children track history independently
       (currently global — if Adults gets article X, Children won't see it next run)
 - [ ] Verify and enable WNEP / Times Leader / Citizens' Voice native RSS feeds
-- [ ] Re-enable Reuters or AP News if hosting moves to a machine without DNS restrictions
-- [ ] Set up `pm2 startup` to survive Windows reboots
+- [ ] Re-enable Reuters or AP News if hosting moves to a machine without DNS
+      restrictions. **Reuters is now `"active": false`** — confirmed dead
+      (`ENOTFOUND feeds.reuters.com`) by `npm run sources:probe` on 2026-09-10.
+      NPR is the only live national source.
+- [ ] Retry the 403 event sources (DiscoverNEPA, Pocono Mountains, Visit NEPA)
+      — see §4b. DiscoverNEPA would be the best event feed in the region.
+- [ ] Regional widening (2026-09-10) tuning pass: after a few live runs, check
+      whether tier 3 (Lehigh/Northampton, ~60 mi) earns its place or should be
+      dropped, and whether MAX_EVENTS/MAX_NEWS (6 + 6) is the right length.
+- [x] Reboot persistence — done 2026-08-24 via `pm2-resurrect` Task Scheduler task
+- [x] Widen scope beyond Luzerne — done 2026-09-10. 50-mile radius, 3 tiers
+      (§4a), real event calendars (§4b), events/news split into two ranked
+      sections.
 - [ ] Consider adding a `logs/` rotation policy (one file per day, no cleanup yet)
+- [ ] Grocery deals section (§15) is TEST-ONLY — decide whether to promote it to
+      live digests, and whether to per-member/per-audience the item list
+
+---
+
+## 15. Grocery Deals (TEST EMAIL ONLY)
+
+Experimental section that surfaces weekly grocery sale prices for specific
+items near ZIP **18612**. **Only rendered in `--test` runs** — live digests to
+family members never include it (guarded by a `testMode` check in
+`sendDigest.ts`).
+
+- Source: Flipp / Wishabi public circular search
+  (`https://backflipp.wishabi.com/flipp/items/search`). Same data the Flipp
+  app uses; **unofficial and undocumented** — if it ever changes shape the whole
+  section is caught and skipped, exactly like weather/calendar. Never blocks the
+  digest.
+- **No exact 30-mile radius is possible** — the item payload carries no
+  per-store distance. "Nearby" is approximated by (a) ZIP-localized results and
+  (b) a NEPA grocery-store allowlist in `grocery.json` (`stores`).
+- Config lives in `grocery.json` (project root): `items` (search terms +
+  display labels), `stores` (merchant allowlist, case-insensitive substring
+  match), `maxPerItem`, `zip`. Edit and re-run — **no DB migration needed**
+  (read via static JSON import, unlike the `sources`/`family` DB seed pattern).
+- Only deals valid on the run date are shown, sorted cheapest-first. Renders as
+  a teal card between National Headlines and local news.
+- Code: `src/fetchGrocery.ts` (fetch + filter), `grocerySection()` in
+  `src/emailTemplate.ts` (render).

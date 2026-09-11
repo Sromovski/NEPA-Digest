@@ -1,4 +1,5 @@
 import { openDb } from './db';
+import { tierFor } from './region';
 import sources from '../sources.json';
 import family from '../family.json';
 
@@ -6,8 +7,8 @@ export function seedFromFiles(): void {
   const db = openDb();
 
   const insertSource = db.prepare(`
-    INSERT INTO sources (name, url, type, category, active)
-    VALUES (@name, @url, @type, @category, @active)
+    INSERT INTO sources (name, url, type, category, active, tier, county)
+    VALUES (@name, @url, @type, @category, @active, @tier, @county)
   `);
 
   const insertMember = db.prepare(`
@@ -21,12 +22,16 @@ export function seedFromFiles(): void {
     let sourceCount = 0;
     for (const s of sources) {
       if (!s.url) continue;
+      const county = (s as any).county as string | undefined;
       insertSource.run({
         name: s.name,
         url: s.url,
         type: s.type,
         category: s.category,
         active: s.active ? 1 : 0,
+        // Fall back to the county map so a source can omit an explicit tier.
+        tier: (s as any).tier ?? tierFor(county),
+        county: county ?? null,
       });
       sourceCount++;
     }

@@ -1,0 +1,24 @@
+{
+  "zip": "18612",
+  "radiusMiles": 30,
+  "maxPerItem": 5,
+  "items": [
+    { "label": "Boneless Chicken Breast", "query": "boneless skinless chicken breast" },
+    { "label": "Ground Beef (80/20)", "query": "ground beef" },
+    { "label": "Laundry Detergent", "query": "laundry detergent" }
+  ],
+  "stores": [
+    "Weis Markets",
+    "Giant",
+    "Gerrity's",
+    "Price Chopper",
+    "Market 32",
+    "Redner's",
+    "ALDI",
+    "Wegmans",
+    "BJ's",
+    "Sam's Club",
+    "Walmart",
+    "Target"
+  ]
+}

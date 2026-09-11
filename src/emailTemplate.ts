@@ -2,6 +2,8 @@ import type { FamilyMember, Article } from './types';
 import type { RankedArticle } from './rankAndSummarize';
 import type { WeatherForecast } from './fetchWeather';
 import type { CalendarEvent } from './fetchCalendar';
+import type { GroceryGroup } from './fetchGrocery';
+import { countyLabel } from './region';
 
 const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
   news:     { bg: '#dbeafe', text: '#1e40af' },
@@ -162,6 +164,79 @@ function calendarSection(events: CalendarEvent[]): string {
     </tr>`;
 }
 
+function grocerySection(groups: GroceryGroup[]): string {
+  if (groups.length === 0) return '';
+
+  const blocks = groups.map(group => {
+    const rows = group.deals.map(deal => {
+      const expires = deal.validTo
+        ? deal.validTo.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        : '';
+      return `
+        <tr>
+          <td style="padding:8px 0;border-bottom:1px solid #ccfbf1;vertical-align:top;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="vertical-align:top;">
+                  <div style="font-size:14px;font-weight:600;color:#111827;line-height:1.4;">
+                    ${escHtml(deal.name)}
+                  </div>
+                  <div style="font-size:11px;color:#6b7280;margin-top:2px;">
+                    ${escHtml(deal.merchant)}${expires ? ` &nbsp;&middot;&nbsp; through ${escHtml(expires)}` : ''}
+                  </div>
+                </td>
+                <td align="right" style="vertical-align:top;white-space:nowrap;padding-left:10px;">
+                  <span style="font-size:15px;font-weight:700;color:#0f766e;">
+                    ${escHtml(deal.priceText)}
+                  </span>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>`;
+    }).join('');
+
+    return `
+      <tr>
+        <td style="padding:4px 0 2px 0;">
+          <p style="margin:12px 0 4px 0;font-size:13px;font-weight:700;color:#115e59;">
+            ${escHtml(group.label)}
+          </p>
+          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+            ${rows}
+          </table>
+        </td>
+      </tr>`;
+  }).join('');
+
+  return `
+    <tr>
+      <td style="padding:0 0 24px 0;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0"
+               style="background:#f0fdfa;border:1px solid #99f6e4;border-radius:8px;overflow:hidden;">
+          <tr>
+            <td style="padding:14px 16px 4px 16px;">
+              <p style="margin:0 0 4px 0;font-size:12px;font-weight:700;
+                         letter-spacing:0.08em;color:#0f766e;text-transform:uppercase;">
+                &#128722; Grocery Deals Near You
+              </p>
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                ${blocks}
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:6px 16px 10px 16px;">
+              <p style="margin:0;font-size:10px;color:#5eead4;text-align:right;">
+                weekly circular prices via Flipp &mdash; verify in-store before you buy
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>`;
+}
+
 function nationalSection(articles: Article[]): string {
   if (articles.length === 0) return '';
 
@@ -209,6 +284,37 @@ function nationalSection(articles: Article[]): string {
     </tr>`;
 }
 
+/** Grey chip naming the county, shown only when the item isn't from Luzerne. */
+function countyChip(county: string | undefined): string {
+  const label = countyLabel(county);
+  if (!label) return '';
+  return `<span style="display:inline-block;margin-left:6px;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;letter-spacing:0.04em;background:#f3f4f6;color:#4b5563;">&#128205; ${escHtml(label)}</span>`;
+}
+
+/** Blue chip with the start date — only calendar items have one. */
+function eventDateChip(eventDate: Date | undefined): string {
+  if (!eventDate) return '';
+  const when = eventDate.toLocaleDateString('en-US', {
+    weekday: 'short', month: 'short', day: 'numeric',
+  });
+  const time = eventDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  const isMidnight = eventDate.getHours() === 0 && eventDate.getMinutes() === 0;
+  return `<span style="display:inline-block;margin-left:6px;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;letter-spacing:0.04em;background:#dbeafe;color:#1e40af;">&#128197; ${escHtml(when)}${isMidnight ? '' : ` &middot; ${escHtml(time)}`}</span>`;
+}
+
+function sectionHeading(title: string, emoji: string, color: string): string {
+  return `
+    <tr>
+      <td style="padding:4px 0 12px 0;">
+        <p style="margin:0;font-size:12px;font-weight:700;letter-spacing:0.08em;
+                   color:${color};text-transform:uppercase;">
+          ${emoji} ${escHtml(title)}
+        </p>
+        <div style="height:2px;background:${color};opacity:0.25;margin-top:6px;"></div>
+      </td>
+    </tr>`;
+}
+
 function articleRow(item: RankedArticle): string {
   const { article, summary } = item;
   const date = article.pubDate.toLocaleDateString('en-US', {
@@ -225,7 +331,7 @@ function articleRow(item: RankedArticle): string {
               <table width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td style="padding:0 0 8px 0;">
-                    ${categoryBadge(article.category)}
+                    ${categoryBadge(article.category)}${eventDateChip(article.eventDate)}${countyChip(article.county)}
                   </td>
                 </tr>
                 <tr>
@@ -243,7 +349,7 @@ function articleRow(item: RankedArticle): string {
                 </tr>
                 <tr>
                   <td style="font-size:12px;color:#6b7280;">
-                    ${escHtml(article.source)} &nbsp;&middot;&nbsp; ${date}
+                    ${escHtml(article.source)} &nbsp;&middot;&nbsp; ${article.eventDate ? 'listed' : ''} ${date}
                   </td>
                 </tr>
               </table>
@@ -256,13 +362,25 @@ function articleRow(item: RankedArticle): string {
 
 export function renderDigestEmail(
   member: FamilyMember,
-  articles: RankedArticle[],
+  events: RankedArticle[],
+  news: RankedArticle[],
   nationalArticles: Article[],
   dateRange: string,
   weather?: WeatherForecast,
-  calendarEvents?: CalendarEvent[]
+  calendarEvents?: CalendarEvent[],
+  groceryGroups?: GroceryGroup[]
 ): string {
-  const rows = articles.map(articleRow).join('');
+  const eventsBlock =
+    events.length > 0
+      ? sectionHeading('Events & Things To Do', '&#127914;', '#15803d') +
+        events.map(articleRow).join('')
+      : '';
+
+  const newsBlock =
+    news.length > 0
+      ? sectionHeading('Around the Region', '&#128240;', '#1e40af') +
+        news.map(articleRow).join('')
+      : '';
 
   const noArticlesMsg = `
     <tr>
@@ -276,7 +394,7 @@ export function renderDigestEmail(
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Luzerne County Weekly Digest — ${escHtml(member.name)}</title>
+  <title>NEPA Weekly Digest — ${escHtml(member.name)}</title>
 </head>
 <body style="margin:0;padding:0;background:#f9fafb;font-family:Georgia,serif;">
 
@@ -295,10 +413,10 @@ export function renderDigestEmail(
                   <td>
                     <p style="margin:0 0 4px 0;font-size:11px;font-weight:600;
                                letter-spacing:0.1em;color:#93c5fd;text-transform:uppercase;">
-                      Luzerne County, Pennsylvania
+                      Luzerne County &amp; Northeastern Pennsylvania
                     </p>
                     <h1 style="margin:0;font-size:24px;color:#ffffff;font-family:Georgia,serif;">
-                      Luzerne County Weekly Digest
+                      NEPA Weekly Digest
                     </h1>
                   </td>
                   <td align="right" style="vertical-align:bottom;">
@@ -329,7 +447,10 @@ export function renderDigestEmail(
                 ${weather ? weatherSection(weather) : ''}
                 ${calendarEvents && calendarEvents.length > 0 ? calendarSection(calendarEvents) : ''}
                 ${nationalSection(nationalArticles)}
-                ${articles.length > 0 ? rows : noArticlesMsg}
+                ${groceryGroups && groceryGroups.length > 0 ? grocerySection(groceryGroups) : ''}
+                ${eventsBlock}
+                ${newsBlock}
+                ${events.length + news.length === 0 ? noArticlesMsg : ''}
               </table>
             </td>
           </tr>

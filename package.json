@@ -8,7 +8,10 @@
     "db:migrate": "ts-node src/migrate.ts",
     "fetch": "ts-node src/fetchFeeds.ts",
     "digest:test": "ts-node src/sendDigest.ts --test",
-    "digest:send": "ts-node src/sendDigest.ts"
+    "digest:send": "ts-node src/sendDigest.ts",
+    "sources:probe": "ts-node src/probeSources.ts",
+    "test": "node --require ts-node/register/transpile-only --test src/**/*.test.ts",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +23,7 @@
     "dotenv": "^17.4.2",
     "googleapis": "^173.0.0",
     "node-cron": "^4.5.0",
+    "node-ical": "^0.27.1",
     "resend": "^6.14.0",
     "rss-parser": "^3.13.0"
   },

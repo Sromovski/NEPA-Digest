@@ -5,11 +5,13 @@ import { buildDigests } from './rankAndSummarize';
 import { renderDigestEmail } from './emailTemplate';
 import { fetchWeather } from './fetchWeather';
 import { fetchCalendarEvents } from './fetchCalendar';
+import { fetchGroceryDeals } from './fetchGrocery';
 import { openDb } from './db';
 import { log, error } from './logger';
 import type { RankedArticle } from './rankAndSummarize';
 import type { WeatherForecast } from './fetchWeather';
 import type { CalendarEvent } from './fetchCalendar';
+import type { GroceryGroup } from './fetchGrocery';
 
 function requireEnv(key: string): string {
   const val = process.env[key];
@@ -89,6 +91,16 @@ export async function run(testMode: boolean): Promise<void> {
   if (weather) log(`Weather fetched: ${weather.days.length} day(s).`);
   log(`Calendar fetched: ${calendarEvents.length} event(s).`);
 
+  // Grocery deals — TEST EMAIL ONLY for now. Skipped entirely in live runs.
+  let groceryGroups: GroceryGroup[] = [];
+  if (testMode) {
+    groceryGroups = await fetchGroceryDeals().catch(err => {
+      error(`Grocery fetch failed (continuing without it): ${(err as Error).message}`);
+      return [];
+    });
+    log(`Grocery fetched: ${groceryGroups.length} item group(s).`);
+  }
+
   log('Fetching feeds...');
   const allArticles = await fetchAndNormalize();
   log(`${allArticles.length} fresh article(s) fetched.`);
@@ -107,19 +119,22 @@ export async function run(testMode: boolean): Promise<void> {
   let sentCount = 0;
   let failCount = 0;
 
-  for (const { member, articles: ranked } of digests) {
+  for (const { member, events, news } of digests) {
+    const ranked = [...events, ...news];
     const recipients = testMode
       ? [testEmail]
       : [member.email, ...member.additional_emails].filter(e => !!e);
-    const subject = `Luzerne County Weekly Digest — ${member.name} — ${range}`;
-    const html = renderDigestEmail(member, ranked, nationalArticles, range, weather, calendarEvents);
+    const subject = `NEPA Weekly Digest — ${member.name} — ${range}`;
+    const html = renderDigestEmail(
+      member, events, news, nationalArticles, range, weather, calendarEvents, groceryGroups
+    );
 
     let memberSentCount = 0;
     for (const recipient of recipients) {
       try {
         await sendEmail(resend, recipient, subject, html);
         const label = testMode ? `${member.name} → ${recipient} (test)` : `${member.name} → ${recipient}`;
-        log(`Sent: ${label} — ${ranked.length} article(s)`);
+        log(`Sent: ${label} — ${events.length} event(s) + ${news.length} news item(s)`);
         memberSentCount++;
       } catch (err) {
         error(`Failed to send for ${member.name} → ${recipient}: ${(err as Error).message}`);
@@ -151,8 +166,13 @@ export async function run(testMode: boolean): Promise<void> {
 // CLI entrypoint
 if (require.main === module) {
   const testMode = process.argv.includes('--test');
-  run(testMode).catch(err => {
-    error(`Fatal: ${(err as Error).message}`);
-    process.exit(1);
-  });
+  run(testMode)
+    // A source abandoned by withTimeout keeps its socket open, which would
+    // otherwise hold this one-shot CLI open long after the mail went out.
+    // The scheduler calls run() directly and is unaffected.
+    .then(() => process.exit(0))
+    .catch(err => {
+      error(`Fatal: ${(err as Error).message}`);
+      process.exit(1);
+    });
 }

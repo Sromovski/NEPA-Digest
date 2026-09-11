@@ -1,66 +1,20 @@
 [
   {
-    "name": "Google News - Luzerne County",
-    "url": "https://news.google.com/rss/search?q=%22Luzerne+County%22+PA&hl=en-US&gl=US&ceid=US:en",
+    "name": "NPR News - Top Stories",
+    "url": "https://feeds.npr.org/1001/rss.xml",
     "type": "rss",
-    "category": "news",
-    "active": true
+    "category": "national",
+    "active": true,
+    "tier": 2
   },
   {
-    "name": "Google News - Wilkes-Barre",
-    "url": "https://news.google.com/rss/search?q=%22Wilkes-Barre%22&hl=en-US&gl=US&ceid=US:en",
+    "name": "Reuters - Top News",
+    "url": "https://feeds.reuters.com/reuters/topNews",
     "type": "rss",
-    "category": "news",
-    "active": true
-  },
-  {
-    "name": "Google News - Hazleton PA",
-    "url": "https://news.google.com/rss/search?q=%22Hazleton%22+PA&hl=en-US&gl=US&ceid=US:en",
-    "type": "rss",
-    "category": "news",
-    "active": true
-  },
-  {
-    "name": "Google News - Wyoming Valley Events",
-    "url": "https://news.google.com/rss/search?q=%22Wyoming+Valley%22+events&hl=en-US&gl=US&ceid=US:en",
-    "type": "rss",
-    "category": "events",
-    "active": true
-  },
-  {
-    "name": "Google News - Luzerne County Events",
-    "url": "https://news.google.com/rss/search?q=%22Luzerne+County%22+events&hl=en-US&gl=US&ceid=US:en",
-    "type": "rss",
-    "category": "events",
-    "active": true
-  },
-  {
-    "name": "Google News - Farmers Markets NEPA",
-    "url": "https://news.google.com/rss/search?q=%22farmers+market%22+%22Luzerne+County%22+OR+%22Wilkes-Barre%22+OR+%22Hazleton%22&hl=en-US&gl=US&ceid=US:en",
-    "type": "rss",
-    "category": "events",
-    "active": true
-  },
-  {
-    "name": "Google News - SWB RailRiders",
-    "url": "https://news.google.com/rss/search?q=%22RailRiders%22+OR+%22Scranton+Wilkes-Barre%22+baseball&hl=en-US&gl=US&ceid=US:en",
-    "type": "rss",
-    "category": "sports",
-    "active": true
-  },
-  {
-    "name": "Google News - Luzerne County Sports",
-    "url": "https://news.google.com/rss/search?q=%22Luzerne+County%22+OR+%22Wilkes-Barre%22+sports&hl=en-US&gl=US&ceid=US:en",
-    "type": "rss",
-    "category": "sports",
-    "active": true
-  },
-  {
-    "name": "Google News - Family Events NEPA",
-    "url": "https://news.google.com/rss/search?q=%22Luzerne+County%22+family+OR+kids+OR+children+events&hl=en-US&gl=US&ceid=US:en",
-    "type": "rss",
-    "category": "events",
-    "active": true
+    "category": "national",
+    "active": false,
+    "tier": 2,
+    "note": "DNS blocked on host machine — re-enable if hosting changes"
   },
   {
     "name": "AP News - Top Stories",
@@ -68,36 +22,416 @@
     "type": "rss",
     "category": "national",
     "active": false,
+    "tier": 2,
     "note": "DNS blocked on host machine — re-enable if hosting changes"
   },
   {
-    "name": "Reuters - Top News",
-    "url": "https://feeds.reuters.com/reuters/topNews",
+    "name": "Google News - Luzerne County",
+    "url": "https://news.google.com/rss/search?q=%22Luzerne%20County%22%20PA&hl=en-US&gl=US&ceid=US:en",
     "type": "rss",
-    "category": "national",
-    "active": true
+    "category": "news",
+    "active": true,
+    "tier": 1,
+    "county": "Luzerne"
   },
   {
-    "name": "NPR News - Top Stories",
-    "url": "https://feeds.npr.org/1001/rss.xml",
+    "name": "Google News - Wilkes-Barre",
+    "url": "https://news.google.com/rss/search?q=%22Wilkes-Barre%22&hl=en-US&gl=US&ceid=US:en",
     "type": "rss",
-    "category": "national",
-    "active": true
+    "category": "news",
+    "active": true,
+    "tier": 1,
+    "county": "Luzerne"
+  },
+  {
+    "name": "Google News - Hazleton PA",
+    "url": "https://news.google.com/rss/search?q=%22Hazleton%22%20PA&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "news",
+    "active": true,
+    "tier": 1,
+    "county": "Luzerne"
+  },
+  {
+    "name": "Google News - Back Mountain",
+    "url": "https://news.google.com/rss/search?q=%22Back%20Mountain%22%20OR%20%22Dallas%20PA%22%20OR%20%22Kingston%20PA%22%20OR%20%22Nanticoke%22&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "news",
+    "active": true,
+    "tier": 1,
+    "county": "Luzerne"
+  },
+  {
+    "name": "Google News - Luzerne County Events",
+    "url": "https://news.google.com/rss/search?q=%22Luzerne%20County%22%20events&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "events",
+    "active": true,
+    "tier": 1,
+    "county": "Luzerne"
+  },
+  {
+    "name": "Google News - Wyoming Valley Events",
+    "url": "https://news.google.com/rss/search?q=%22Wyoming%20Valley%22%20events&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "events",
+    "active": true,
+    "tier": 1,
+    "county": "Luzerne"
+  },
+  {
+    "name": "Google News - Wilkes-Barre Events",
+    "url": "https://news.google.com/rss/search?q=%22Wilkes-Barre%22%20festival%20OR%20concert%20OR%20fair%20OR%20%22things%20to%20do%22&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "events",
+    "active": true,
+    "tier": 1,
+    "county": "Luzerne"
+  },
+  {
+    "name": "Google News - Family Events NEPA",
+    "url": "https://news.google.com/rss/search?q=%22Luzerne%20County%22%20family%20OR%20kids%20OR%20children%20events&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "events",
+    "active": true,
+    "tier": 1,
+    "county": "Luzerne"
+  },
+  {
+    "name": "Google News - Farmers Markets NEPA",
+    "url": "https://news.google.com/rss/search?q=%22farmers%20market%22%20%22Luzerne%20County%22%20OR%20%22Wilkes-Barre%22%20OR%20%22Hazleton%22&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "events",
+    "active": true,
+    "tier": 1,
+    "county": "Luzerne"
+  },
+  {
+    "name": "Google News - Luzerne County Sports",
+    "url": "https://news.google.com/rss/search?q=%22Luzerne%20County%22%20OR%20%22Wilkes-Barre%22%20sports&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "sports",
+    "active": true,
+    "tier": 1,
+    "county": "Luzerne"
+  },
+  {
+    "name": "Google News - SWB RailRiders",
+    "url": "https://news.google.com/rss/search?q=%22RailRiders%22%20OR%20%22Scranton%20Wilkes-Barre%22%20baseball&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "sports",
+    "active": true,
+    "tier": 1,
+    "county": "Luzerne"
+  },
+  {
+    "name": "Google News - Lackawanna County",
+    "url": "https://news.google.com/rss/search?q=%22Lackawanna%20County%22%20OR%20%22Scranton%22%20PA&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "news",
+    "active": true,
+    "tier": 2,
+    "county": "Lackawanna"
+  },
+  {
+    "name": "Google News - Wyoming County",
+    "url": "https://news.google.com/rss/search?q=%22Wyoming%20County%22%20PA%20OR%20%22Tunkhannock%22&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "news",
+    "active": true,
+    "tier": 2,
+    "county": "Wyoming"
+  },
+  {
+    "name": "Google News - Columbia County",
+    "url": "https://news.google.com/rss/search?q=%22Columbia%20County%22%20PA%20OR%20%22Bloomsburg%22%20OR%20%22Berwick%20PA%22&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "news",
+    "active": true,
+    "tier": 2,
+    "county": "Columbia"
+  },
+  {
+    "name": "Google News - Carbon County",
+    "url": "https://news.google.com/rss/search?q=%22Carbon%20County%22%20PA%20OR%20%22Jim%20Thorpe%22%20OR%20%22Lehighton%22&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "news",
+    "active": true,
+    "tier": 2,
+    "county": "Carbon"
+  },
+  {
+    "name": "Google News - Monroe County",
+    "url": "https://news.google.com/rss/search?q=%22Monroe%20County%22%20PA%20OR%20%22Stroudsburg%22%20OR%20%22Pocono%22&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "news",
+    "active": true,
+    "tier": 2,
+    "county": "Monroe"
+  },
+  {
+    "name": "Google News - Schuylkill County",
+    "url": "https://news.google.com/rss/search?q=%22Schuylkill%20County%22%20OR%20%22Pottsville%22%20PA&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "news",
+    "active": true,
+    "tier": 2,
+    "county": "Schuylkill"
+  },
+  {
+    "name": "Google News - Sullivan County",
+    "url": "https://news.google.com/rss/search?q=%22Sullivan%20County%22%20PA%20OR%20%22Dushore%22&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "news",
+    "active": true,
+    "tier": 2,
+    "county": "Sullivan"
+  },
+  {
+    "name": "Google News - Susquehanna County",
+    "url": "https://news.google.com/rss/search?q=%22Susquehanna%20County%22%20PA%20OR%20%22Montrose%20PA%22&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "news",
+    "active": true,
+    "tier": 2,
+    "county": "Susquehanna"
+  },
+  {
+    "name": "Google News - Wayne County",
+    "url": "https://news.google.com/rss/search?q=%22Wayne%20County%22%20PA%20OR%20%22Honesdale%22&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "news",
+    "active": true,
+    "tier": 2,
+    "county": "Wayne"
+  },
+  {
+    "name": "Google News - Montour County",
+    "url": "https://news.google.com/rss/search?q=%22Montour%20County%22%20PA%20OR%20%22Danville%20PA%22&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "news",
+    "active": true,
+    "tier": 2,
+    "county": "Montour"
+  },
+  {
+    "name": "Google News - Lackawanna County Events",
+    "url": "https://news.google.com/rss/search?q=%22Scranton%22%20OR%20%22Lackawanna%20County%22%20events%20OR%20festival%20OR%20%22things%20to%20do%22&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "events",
+    "active": true,
+    "tier": 2,
+    "county": "Lackawanna"
+  },
+  {
+    "name": "Google News - Monroe County Events",
+    "url": "https://news.google.com/rss/search?q=%22Pocono%22%20OR%20%22Stroudsburg%22%20events%20OR%20festival%20OR%20%22things%20to%20do%22&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "events",
+    "active": true,
+    "tier": 2,
+    "county": "Monroe"
+  },
+  {
+    "name": "Google News - Columbia County Events",
+    "url": "https://news.google.com/rss/search?q=%22Bloomsburg%22%20OR%20%22Columbia%20County%22%20PA%20events%20OR%20fair%20OR%20festival&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "events",
+    "active": true,
+    "tier": 2,
+    "county": "Columbia"
+  },
+  {
+    "name": "Google News - Carbon County Events",
+    "url": "https://news.google.com/rss/search?q=%22Jim%20Thorpe%22%20OR%20%22Carbon%20County%22%20PA%20events%20OR%20festival&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "events",
+    "active": true,
+    "tier": 2,
+    "county": "Carbon"
+  },
+  {
+    "name": "Google News - Schuylkill County Events",
+    "url": "https://news.google.com/rss/search?q=%22Schuylkill%20County%22%20OR%20%22Pottsville%22%20PA%20events%20OR%20festival&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "events",
+    "active": true,
+    "tier": 2,
+    "county": "Schuylkill"
+  },
+  {
+    "name": "Google News - Wayne County Events",
+    "url": "https://news.google.com/rss/search?q=%22Honesdale%22%20OR%20%22Wayne%20County%22%20PA%20events%20OR%20festival&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "events",
+    "active": true,
+    "tier": 2,
+    "county": "Wayne"
+  },
+  {
+    "name": "Google News - Wyoming County Events",
+    "url": "https://news.google.com/rss/search?q=%22Tunkhannock%22%20OR%20%22Wyoming%20County%22%20PA%20events%20OR%20festival&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "events",
+    "active": true,
+    "tier": 2,
+    "county": "Wyoming"
+  },
+  {
+    "name": "Google News - NEPA High School Sports",
+    "url": "https://news.google.com/rss/search?q=%22District%202%22%20OR%20%22NEPA%22%20high%20school%20sports%20PA&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "sports",
+    "active": true,
+    "tier": 2,
+    "county": "Lackawanna"
+  },
+  {
+    "name": "Google News - NEPA Farmers Markets",
+    "url": "https://news.google.com/rss/search?q=%22farmers%20market%22%20%22Scranton%22%20OR%20%22Bloomsburg%22%20OR%20%22Stroudsburg%22%20OR%20%22Honesdale%22&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "events",
+    "active": true,
+    "tier": 2,
+    "county": "Lackawanna"
+  },
+  {
+    "name": "Google News - Pike County",
+    "url": "https://news.google.com/rss/search?q=%22Pike%20County%22%20PA%20OR%20%22Milford%20PA%22%20OR%20%22Matamoras%22&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "news",
+    "active": true,
+    "tier": 3,
+    "county": "Pike"
+  },
+  {
+    "name": "Google News - Lehigh County",
+    "url": "https://news.google.com/rss/search?q=%22Lehigh%20County%22%20OR%20%22Allentown%22%20PA&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "news",
+    "active": true,
+    "tier": 3,
+    "county": "Lehigh"
+  },
+  {
+    "name": "Google News - Northampton County",
+    "url": "https://news.google.com/rss/search?q=%22Northampton%20County%22%20PA%20OR%20%22Bethlehem%20PA%22%20OR%20%22Easton%20PA%22&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "news",
+    "active": true,
+    "tier": 3,
+    "county": "Northampton"
+  },
+  {
+    "name": "Google News - Northumberland County",
+    "url": "https://news.google.com/rss/search?q=%22Northumberland%20County%22%20PA%20OR%20%22Sunbury%22%20OR%20%22Shamokin%22&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "news",
+    "active": true,
+    "tier": 3,
+    "county": "Northumberland"
+  },
+  {
+    "name": "Google News - Bradford County",
+    "url": "https://news.google.com/rss/search?q=%22Bradford%20County%22%20PA%20OR%20%22Towanda%22%20OR%20%22Sayre%20PA%22&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "news",
+    "active": true,
+    "tier": 3,
+    "county": "Bradford"
+  },
+  {
+    "name": "Google News - Lehigh Valley Events",
+    "url": "https://news.google.com/rss/search?q=%22Lehigh%20Valley%22%20OR%20%22Allentown%22%20OR%20%22Bethlehem%20PA%22%20events%20OR%20festival%20OR%20concert&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "events",
+    "active": true,
+    "tier": 3,
+    "county": "Lehigh"
+  },
+  {
+    "name": "Google News - Pike County Events",
+    "url": "https://news.google.com/rss/search?q=%22Pike%20County%22%20PA%20OR%20%22Milford%20PA%22%20events%20OR%20festival&hl=en-US&gl=US&ceid=US:en",
+    "type": "rss",
+    "category": "events",
+    "active": true,
+    "tier": 3,
+    "county": "Pike"
   },
   {
     "name": "Keystone Newsroom",
     "url": "https://keystonenewsroom.com/feed/",
     "type": "rss",
     "category": "news",
-    "active": true
+    "active": true,
+    "tier": 2
   },
   {
-    "name": "WVIA Local News",
-    "url": "",
+    "name": "Osterhout Free Library Events",
+    "url": "https://www.osterhout.info/events/feed/",
+    "type": "event-rss",
+    "category": "events",
+    "active": true,
+    "tier": 1,
+    "county": "Luzerne",
+    "note": "The Events Calendar feed — pubDate is the event start time"
+  },
+  {
+    "name": "Keystone College Events",
+    "url": "https://www.keystone.edu/events/feed/",
+    "type": "event-rss",
+    "category": "events",
+    "active": true,
+    "tier": 2,
+    "county": "Lackawanna",
+    "note": "The Events Calendar feed — pubDate is the event start time"
+  },
+  {
+    "name": "Scranton Cultural Center Events",
+    "url": "https://www.scrantonculturalcenter.org/events/feed/",
+    "type": "event-rss",
+    "category": "events",
+    "active": true,
+    "tier": 2,
+    "county": "Lackawanna",
+    "note": "The Events Calendar feed — pubDate is the event start time"
+  },
+  {
+    "name": "Waverly Community House Events",
+    "url": "https://www.waverlycomm.org/events/feed/",
+    "type": "event-rss",
+    "category": "events",
+    "active": true,
+    "tier": 2,
+    "county": "Lackawanna",
+    "note": "The Events Calendar feed — pubDate is the event start time"
+  },
+  {
+    "name": "ArtsQuest Events",
+    "url": "https://www.artsquest.org/events/feed/",
+    "type": "event-rss",
+    "category": "events",
+    "active": true,
+    "tier": 3,
+    "county": "Northampton",
+    "note": "The Events Calendar feed — pubDate is the event start time"
+  },
+  {
+    "name": "F.M. Kirby Center News",
+    "url": "https://www.kirbycenter.org/feed/",
     "type": "rss",
-    "category": "news",
-    "active": false,
-    "note": "No public RSS feed found — check wvia.org for a feed URL before enabling"
+    "category": "events",
+    "active": true,
+    "tier": 1,
+    "county": "Luzerne"
+  },
+  {
+    "name": "Luzerne County Library System News",
+    "url": "https://lclshome.org/feed/",
+    "type": "rss",
+    "category": "events",
+    "active": true,
+    "tier": 1,
+    "county": "Luzerne"
   }
 ]
-
