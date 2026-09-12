@@ -463,6 +463,37 @@ means duplicates:
 grep -c "Digest run started" logs/digest-$(date +%F).log   # expect 1
 ```
 
+**GOTCHA — on Windows, PM2 ORPHANS the old process on restart/delete.** This
+is the usual cause of the duplicate above, and `pm2 status` will NOT show it:
+PM2 spawns a replacement, stops tracking the old `ProcessContainerFork`, but
+never kills it. The orphan keeps its own cron registration AND its original
+environment, so it fires its own digest alongside the real one. On 2026-09-12
+an orphan left over from a restart the previous morning sent every recipient a
+second, EMPTY digest (it still held the stale API key) 0.7s before the good
+one.
+
+`pm2 status` showing one row is NOT sufficient. Count the actual processes:
+
+```powershell
+Get-CimInstance Win32_Process -Filter "Name='node.exe'" |
+  Where-Object { $_.CommandLine -match 'ProcessContainerFork' } |
+  Select-Object ProcessId, CreationDate     # expect exactly ONE row
+```
+
+Do NOT just kill the orphan — PM2 respawns whatever it still considers
+tracked, and you end up chasing PIDs. Reset the daemon instead:
+
+```bash
+pm2 delete all
+pm2 kill                                   # clears the corrupted daemon state
+# then confirm 0 ProcessContainerFork processes with the PowerShell above,
+# killing any stragglers, before restarting:
+pm2 start ecosystem.config.js              # from a shell with no ANTHROPIC_API_KEY
+pm2 save
+```
+
+Always re-count processes ~10s after starting, since a respawn is not instant.
+
 `ecosystem.config.js` uses `interpreter: 'node'` with
 `interpreter_args: '--require ts-node/register'` — required on Windows because
 the `node_modules/.bin/ts-node` shim is a Unix shell script Node can't run.
